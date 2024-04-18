@@ -71,6 +71,7 @@
             button30 = new Button();
             button34 = new Button();
             button35 = new Button();
+            button43 = new Button();
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
@@ -521,11 +522,22 @@
             button35.UseVisualStyleBackColor = true;
             button35.Click += Cell_Click;
             // 
+            // button43
+            // 
+            button43.Location = new Point(351, 379);
+            button43.Name = "button43";
+            button43.Size = new Size(126, 41);
+            button43.TabIndex = 1;
+            button43.Text = "Reset the game";
+            button43.UseVisualStyleBackColor = true;
+            button43.Click += Reset_Game;
+            // 
             // Connect4Game
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(button43);
             Controls.Add(tableLayoutPanel1);
             Name = "Connect4Game";
             Text = "Connect4Game";
@@ -579,5 +591,6 @@
         private Button button36;
         private Button button34;
         private Button button35;
+        private Button button43;
     }
 }

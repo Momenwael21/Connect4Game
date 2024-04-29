@@ -75,6 +75,7 @@ namespace Connect4Game
             return false; // No win condition found
         }
 
+
         public static Player?[,] MakeMove(Player?[,] board, int column, Player player)
         {
             Player?[,] newBoard = (Player?[,])board.Clone();
@@ -195,6 +196,18 @@ namespace Connect4Game
             return yellowScore - redScore;
         }
 
+        public static Player GetOppositePlayer(Player player)
+        {
+            // Switch between Red and Yellow players
+            if (player == Player.Red)
+            {
+                return Player.Yellow;
+            }
+            else
+            {
+                return Player.Red;
+            }
 
+        }
     }
 }

@@ -49,10 +49,6 @@ namespace Connect4Game
             }
 
         }
-
-
-       
-       
     
         // AI Methods
         /* private const int MaxDepth = 6; // Maximum search depth for the minimax algorithm
@@ -133,16 +129,10 @@ namespace Connect4Game
             };
         }*/
 
-        // private IAIAlgorithm currentAIAlgorithm;
-
-        /* private void SetAIAlgorithm(IAIAlgorithm algorithm)
-        {
-            currentAIAlgorithm = algorithm;
-        } */
-
+       
         private void MakeAIMove()
         {
-            int bestMove = BFSAlgorithm.FindBestMove(gameState, Player.Yellow);
+            int bestMove = UCSAlgorithm.FindBestMove(gameState, Player.Yellow);
 
             // Apply the best move to the game state
             gameState = MakeMove(gameState, bestMove, Player.Yellow);

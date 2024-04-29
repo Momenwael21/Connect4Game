@@ -2,9 +2,11 @@ using System.Numerics;
 
 namespace Connect4Game
 {
+    public enum Player { Red, Yellow }
+
+   
     public partial class Connect4Game : Form
     {
-        enum Player { Red, Yellow }
         Player currentPlayer = Player.Red;
         Player?[,] gameState = new Player?[6, 7]; // 6 rows, 7 columns
         
@@ -35,7 +37,7 @@ namespace Connect4Game
                 
                     // Switch player
                     currentPlayer = Player.Yellow;
-                        if (CheckForWin(gameState))
+                        if (HelperMethods.CheckForWin(gameState))
                         {
                             UpdateUI();
                             HandleWin("Congratulations, You are smarter than AI");
@@ -49,7 +51,11 @@ namespace Connect4Game
         }
 
 
-        private const int MaxDepth = 6; // Maximum search depth for the minimax algorithm
+       
+       
+    
+        // AI Methods
+        /* private const int MaxDepth = 6; // Maximum search depth for the minimax algorithm
 
         private int Minimax(Player?[,] board, int depth, int alpha, int beta, bool isMaximizingPlayer)
         {
@@ -94,113 +100,6 @@ namespace Connect4Game
             }
         }
 
-        private int EvaluateBoard(Player?[,] board)
-        {
-            // Simple evaluation function that counts the number of connected tokens for each player
-            int yellowScore = CountConnectedTokens(board, Player.Yellow);
-            int redScore = CountConnectedTokens(board, Player.Red);
-            return yellowScore - redScore;
-        }
-
-        private int CountConnectedTokens(Player?[,] board, Player player)
-        {
-            int score = 0;
-            for (int row = 0; row < 6; row++)
-            {
-                for (int col = 0; col < 7; col++)
-                {
-                    if (board[row, col] == player)
-                    {
-                        // Check horizontal
-                        if (col <= 3)
-                        {
-                            bool connected = true;
-                            for (int k = 0; k < 4; k++)
-                            {
-                                if (board[row, col + k] != player)
-                                {
-                                    connected = false;
-                                    break;
-                                }
-                            }
-                            if (connected)
-                                score++;
-                        }
-                        // Check vertical
-                        if (row <= 2)
-                        {
-                            bool connected = true;
-                            for (int k = 0; k < 4; k++)
-                            {
-                                if (board[row + k, col] != player)
-                                {
-                                    connected = false;
-                                    break;
-                                }
-                            }
-                            if (connected)
-                                score++;
-                        }
-                        // Check diagonal (bottom-left to top-right)
-                        if (col >= 3 && row <= 2)
-                        {
-                            bool connected = true;
-                            for (int k = 0; k < 4; k++)
-                            {
-                                if (board[row + k, col - k] != player)
-                                {
-                                    connected = false;
-                                    break;
-                                }
-                            }
-                            if (connected)
-                                score++;
-                        }
-                        // Check diagonal (bottom-right to top-left)
-                        if (col <= 3 && row <= 2)
-                        {
-                            bool connected = true;
-                            for (int k = 0; k < 4; k++)
-                            {
-                                if (board[row + k, col + k] != player)
-                                {
-                                    connected = false;
-                                    break;
-                                }
-                            }
-                            if (connected)
-                                score++;
-                        }
-                    }
-                }
-            }
-            return score;
-        }
-
-        private bool IsColumnFull(Player?[,] board, int column)
-        {
-            for (int row = 5; row >= 0; row--)
-            {
-                if (board[row, column] == null)
-                    return false;
-            }
-            return true;
-        }
-
-        private Player?[,] MakeMove(Player?[,] board, int column, Player player)
-        {
-            Player?[,] newBoard = (Player?[,])board.Clone();
-            for (int row = 5; row >= 0; row--)
-            {
-                if (newBoard[row, column] == null)
-                {
-                    newBoard[row, column] = player;
-                    return newBoard;
-                }
-            }
-            return newBoard;
-        } 
-
         private void MakeAIMove()
         {
             int bestMove = -1;
@@ -232,9 +131,44 @@ namespace Connect4Game
                 currentPlayer = Player.Red;
                 UpdateUI();
             };
+        }*/
+
+        private IAIAlgorithm currentAIAlgorithm;
+
+        private void SetAIAlgorithm(IAIAlgorithm algorithm)
+        {
+            currentAIAlgorithm = algorithm;
+        }
+
+        private void MakeAIMove()
+        {
+            int bestMove = currentAIAlgorithm.FindBestMove(gameState, Player.Yellow);
+
+            // Apply the best move to the game state
+            gameState = MakeMove(gameState, bestMove, Player.Yellow);
+
+            // Update the UI
+            UpdateUI();
+
+            // Switch current player to human
+            currentPlayer = Player.Red;
         }
 
         //Helper methods
+        private Player?[,] MakeMove(Player?[,] board, int column, Player player)
+        {
+            Player?[,] newBoard = (Player?[,])board.Clone();
+            for (int row = 5; row >= 0; row--)
+            {
+                if (newBoard[row, column] == null)
+                {
+                    newBoard[row, column] = player;
+                    return newBoard;
+                }
+            }
+            return newBoard;
+        }
+
         private int GetLowestEmptyRow(int column)
         {
             for (int row = 5; row >= 0; row--)
@@ -247,72 +181,7 @@ namespace Connect4Game
             return -1; // Column is full
         }
 
-        private bool CheckForWin(Player?[,] board)
-        {
-            // Check horizontally
-            for (int row = 0; row < 6; row++)
-            {
-                for (int col = 0; col < 4; col++)
-                {
-                    if (board[row, col] != null &&
-                        board[row, col] == board[row, col + 1] &&
-                        board[row, col] == board[row, col + 2] &&
-                        board[row, col] == board[row, col + 3])
-                    {
-                        return true; // Four consecutive tokens in a row
-                    }
-                }
-            }
-
-            // Check vertically
-            for (int row = 0; row < 3; row++)
-            {
-                for (int col = 0; col < 7; col++)
-                {
-                    if (board[row, col] != null &&
-                        board[row, col] == board[row + 1, col] &&
-                        board[row, col] == board[row + 2, col] &&
-                        board[row, col] == board[row + 3, col])
-                    {
-                        return true; // Four consecutive tokens in a column
-                    }
-                }
-            }
-
-            // Check diagonally (bottom-left to top-right)
-            for (int row = 0; row < 3; row++)
-            {
-                for (int col = 0; col < 4; col++)
-                {
-                    if (board[row, col] != null &&
-                        board[row, col] == board[row + 1, col + 1] &&
-                        board[row, col] == board[row + 2, col + 2] &&
-                        board[row, col] == board[row + 3, col + 3])
-                    {
-
-                        return true; // Four consecutive tokens in a diagonal
-                    }
-                }
-            }
-
-            // Check diagonally (bottom-right to top-left)
-            for (int row = 0; row < 3; row++)
-            {
-                for (int col = 3; col < 7; col++)
-                {
-                    if (board[row, col] != null &&
-                        board[row, col] == board[row + 1, col - 1] &&
-                        board[row, col] == board[row + 2, col - 2] &&
-                        board[row, col] == board[row + 3, col - 3])
-                    {
-                        return true; // Four consecutive tokens in a diagonal
-                    }
-                }
-            }
-
-            return false; // No win condition found
-        }
-
+        
         private void UpdateUI()
         {
             for (int row = 0; row < 6; row++)
@@ -357,7 +226,7 @@ namespace Connect4Game
 
         private bool HandleWin(string message)
         {
-            if (CheckForWin(gameState))
+            if (HelperMethods.CheckForWin(gameState))
             {
                 // Disable the game board
                 tableLayoutPanel1.Enabled = false;

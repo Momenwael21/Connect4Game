@@ -12,7 +12,7 @@ namespace Connect4Game
         int FindBestMove(Player?[,] board, Player currentPlayer);
     }
 
-    private interface MaxDepth = 6;
+    private int MaxDepth = 6;
 
     public class BFSAlgorithm : IAIAlgorithm
     {

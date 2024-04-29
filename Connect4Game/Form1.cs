@@ -133,25 +133,32 @@ namespace Connect4Game
             };
         }*/
 
-        private IAIAlgorithm currentAIAlgorithm;
+        // private IAIAlgorithm currentAIAlgorithm;
 
-        private void SetAIAlgorithm(IAIAlgorithm algorithm)
+        /* private void SetAIAlgorithm(IAIAlgorithm algorithm)
         {
             currentAIAlgorithm = algorithm;
-        }
+        } */
 
         private void MakeAIMove()
         {
-            int bestMove = currentAIAlgorithm.FindBestMove(gameState, Player.Yellow);
+            int bestMove = BFSAlgorithm.FindBestMove(gameState, Player.Yellow);
 
             // Apply the best move to the game state
             gameState = MakeMove(gameState, bestMove, Player.Yellow);
 
-            // Update the UI
-            UpdateUI();
+            if (HelperMethods.CheckForWin(gameState))
+            {
+                UpdateUI();
+                HandleWin("Game over!");
+                return;
+            }
+            else
+            {
 
-            // Switch current player to human
-            currentPlayer = Player.Red;
+                currentPlayer = Player.Red;
+                UpdateUI();
+            };
         }
 
         //Helper methods

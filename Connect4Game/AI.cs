@@ -12,34 +12,81 @@ namespace Connect4Game
         int FindBestMove(Player?[,] board, Player currentPlayer);
     }
 
-    private int MaxDepth = 6;
 
-    public class BFSAlgorithm : IAIAlgorithm
+    public class BFSAlgorithm
     {
-        public int FindBestMove(Player?[,] board, Player currentPlayer)
+        public static int FindBestMove(Player?[,] board, Player currentPlayer)
         {
-            Queue<int> queue = new Queue<int>();
-            int[] moves = new int[7];
-            queue.Enqueue(0);
-            while (queue.Count > 0)
+            Queue<(Player?[,], int, int)> queue = new Queue<(Player?[,], int, int)>();
+            HashSet<string> visitedStates = new HashSet<string>();
+
+            // Enqueue each valid starting move
+            for (int col = 0; col < 7; col++)
             {
-                int col = queue.Dequeue();
-                Player?[,] newBoard = HelperMethods.MakeMove(board, col, currentPlayer);
-                if (HelperMethods.CheckForWin(newBoard))
-                    return col;
-                for (int newCol = 0; newCol < 7; newCol++)
+                if (!HelperMethods.IsColumnFull(board, col))
                 {
-                    if (!HelperMethods.IsColumnFull(board, newCol))
-                        queue.Enqueue(newCol);
+                    Player?[,] newBoard = HelperMethods.MakeMove(board, col, currentPlayer);
+                    string boardState = BoardToString(newBoard);
+
+                    if (!visitedStates.Contains(boardState))
+                    {
+                        visitedStates.Add(boardState);
+                        queue.Enqueue((newBoard, col, 0));
+                    }
                 }
             }
-            // Return any valid move (fallback)
+
+            while (queue.Count > 0)
+            {
+                (Player?[,] player, int currentCol, int depth) = queue.Dequeue();
+                Player?[,] newBoard = HelperMethods.MakeMove(board, currentCol, currentPlayer);
+
+                // Check if the current move leads to a win
+                if (HelperMethods.CheckForWin(newBoard))
+                {
+                    return currentCol; // Return winning move
+                }
+
+                // Track visited state using a string representation of the board
+                string boardState = BoardToString(newBoard);
+                if (!visitedStates.Contains(boardState))
+                {
+                    visitedStates.Add(boardState);
+
+                    // Explore adjacent moves (columns) if there is depth left to explore
+                    for (int newCol = 0; newCol < 7; newCol++)
+                    {
+                        if (!HelperMethods.IsColumnFull(board, newCol))
+                        {
+                            queue.Enqueue((newBoard, newCol, depth + 1));
+                        }
+                    }
+                }
+            }
+
+            // Fallback: Return any valid move if no winning move is found
             for (int col = 0; col < 7; col++)
             {
                 if (!HelperMethods.IsColumnFull(board, col))
                     return col;
             }
-            return -1;
+
+            return -1; // No valid moves found (should not happen)
+        }
+
+        // Helper function to convert board to a string representation for state tracking
+        private static string BoardToString(Player?[,] board)
+        {
+            // Convert the board state to a string for easy tracking in the visited states set
+            var boardString = new System.Text.StringBuilder();
+            for (int row = 0; row < 6; row++)
+            {
+                for (int col = 0; col < 7; col++)
+                {
+                    boardString.Append(board[row, col]?.ToString() ?? ".");
+                }
+            }
+            return boardString.ToString();
         }
     }
 
@@ -95,7 +142,7 @@ namespace Connect4Game
                 Player?[,] newBoard = MakeMove(board, col, currentPlayer);
 
                 // Switch player for the next move
-                Player nextPlayer = isMaximizingPlayer ? currentPlayer. : currentPlayer;
+                Player nextPlayer = isMaximizingPlayer ? currentPlayer : currentPlayer;
 
                 // Recursively perform DLS from the new board state
                 int utility = DepthLimitedSearch(newBoard, nextPlayer, depth - 1, !isMaximizingPlayer);
@@ -145,12 +192,23 @@ namespace Connect4Game
         }
     }
 
+    public class TupleComparer : IComparer<int>
+    {
+        public int Compare(int x, int y)
+        {
+            return x.CompareTo(y); // Compare costs
+        }
+    }
+
     public class UCSAlgorithm : IAIAlgorithm
     {
         public int FindBestMove(Player?[,] board, Player currentPlayer)
         {
-            PriorityQueue<(int, int)> pq = new PriorityQueue<(int, int)>();
-            pq.Enqueue((0, 0)); // (cost, column)
+            PriorityQueue<(int cost, int column), int> pq = new PriorityQueue<(int cost, int column), int>(new TupleComparer());
+
+            // Enqueue the initial cost and column with zero cost
+            pq.Enqueue((0, 0), 0);
+
             while (pq.Count > 0)
             {
                 (int cost, int col) = pq.Dequeue();
@@ -160,7 +218,7 @@ namespace Connect4Game
                 for (int newCol = 0; newCol < 7; newCol++)
                 {
                     if (!HelperMethods.IsColumnFull(board, newCol))
-                        pq.Enqueue((cost + 1, newCol));
+                        pq.Enqueue((cost + 1, newCol), cost + 1);
                 }
             }
             // Return any valid move (fallback)

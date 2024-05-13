@@ -65,7 +65,7 @@ namespace Connect4Game
                     return col;
             }
 
-            return -1; // No valid moves found (should not happen)
+            return 1; 
         }
 
         // Helper function to convert board to a string representation for state tracking
@@ -146,7 +146,7 @@ namespace Connect4Game
                     return col;
             }
 
-            return -1; // No valid moves found (should not happen)
+            return 1; 
         }
     }
 
